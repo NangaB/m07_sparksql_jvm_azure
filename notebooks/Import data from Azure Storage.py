@@ -71,7 +71,8 @@
 # MAGIC %scala
 # MAGIC   val expedia = sc.read
 # MAGIC   .format("avro")
-# MAGIC         .load(file_location_2)
+# MAGIC   .option("header", "true")
+# MAGIC   .load(file_location_2)
 # MAGIC   
 # MAGIC expedia.show()
 # MAGIC expedia.printSchema()
@@ -80,17 +81,17 @@
 
 # MAGIC %md
 # MAGIC
-# MAGIC ### Step 3: Query the data
+# MAGIC ### Step 3: Creata delta tables
 # MAGIC
 
 # COMMAND ----------
 
 # MAGIC %scala
 # MAGIC val hotWeaTable = "t1"
-# MAGIC hotelsWeather.write.saveAsTable("t1")
+# MAGIC hotelsWeather.write.format("delta").saveAsTable("t1")
 # MAGIC
 # MAGIC val visitors = "t2"
-# MAGIC expedia.write.saveAsTable("t2")
+# MAGIC expedia.write.format("delta").saveAsTable("t2")
 # MAGIC
 # MAGIC
 
@@ -102,13 +103,14 @@
 
 # COMMAND ----------
 
-display(sc.sql("DESCRIBE DETAIL t2"))
+# MAGIC %scala
+# MAGIC display(sc.sql("DESCRIBE DETAIL t2"))
 
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC
-# MAGIC ##### Step A: First query:
+# MAGIC ##### Step A: First query: Top 10 hotels with max absolute temperature difference by month
 
 # COMMAND ----------
 
@@ -135,7 +137,7 @@ display(sc.sql("DESCRIBE DETAIL t2"))
 
 # MAGIC %md
 # MAGIC
-# MAGIC ##### Step B: Second query:
+# MAGIC ##### Step B: Second query: Top 10 busy (e.g., with the biggest visits count) hotels for each month. If visit dates refer to several months, it should be counted for all affected months
 
 # COMMAND ----------
 
@@ -149,38 +151,4 @@ display(sc.sql("DESCRIBE DETAIL t2"))
 
 # MAGIC %md
 # MAGIC
-# MAGIC ### Step 4: (Optional) Create a view or table
-# MAGIC
-# MAGIC If you want to query this data as a table, you can simply register it as a *view* or a table.
-
-# COMMAND ----------
-
-df.createOrReplaceTempView("YOUR_TEMP_VIEW_NAME")
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC
-# MAGIC We can query this view using Spark SQL. For instance, we can perform a simple aggregation. Notice how we can use `%sql` to query the view from SQL.
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC
-# MAGIC SELECT EXAMPLE_GROUP, SUM(EXAMPLE_AGG) FROM YOUR_TEMP_VIEW_NAME GROUP BY EXAMPLE_GROUP
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC
-# MAGIC Since this table is registered as a temp view, it will be available only to this notebook. If you'd like other users to be able to query this table, you can also create a table from the DataFrame.
-
-# COMMAND ----------
-
-df.write.format("parquet").saveAsTable("MY_PERMANENT_TABLE_NAME")
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC
-# MAGIC This table will persist across cluster restarts and allow various users across different notebooks to query this data.
+# MAGIC ##### Step C: Third query: For visits with extended stay (more than 7 days) calculate weather trend (the day temperature difference between last and first day of stay) and average temperature during stay.
