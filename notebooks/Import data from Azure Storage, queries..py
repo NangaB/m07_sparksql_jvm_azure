@@ -115,6 +115,16 @@
 
 # COMMAND ----------
 
+# MAGIC %scala
+# MAGIC display(dbutils.fs.ls("dbfs:/user/hive/warehouse/t3"))
+
+# COMMAND ----------
+
+# MAGIC %scala
+# MAGIC display(dbutils.fs.ls("dbfs:/user/hive/warehouse/t3/_delta_log"))
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC
 # MAGIC ##### Step A: First query: Top 10 hotels with max absolute temperature difference by month
@@ -193,8 +203,8 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ########### answer - query second
-# MAGIC ########### Top 10 busy (e.g., with the biggest visits count) hotels for each month. If visit dates refer to several months, it should be counted for all affected months
+# MAGIC ###### answer - query second
+# MAGIC ######Top 10 busy (e.g., with the biggest visits count) hotels for each month. If visit dates refer to several months, it should be counted for all affected months
 
 # COMMAND ----------
 
@@ -229,6 +239,26 @@
 # MAGIC val result8 = sc.sql(q4)
 # MAGIC result8.show(20)
 # MAGIC
+
+# COMMAND ----------
+
+# MAGIC %scala
+# MAGIC result8.write.saveAsTable("t5")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ###### checking 
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC DESCRIBE DETAIL t5;
+
+# COMMAND ----------
+
+# MAGIC %scala
+# MAGIC display(dbutils.fs.ls("dbfs:/user/hive/warehouse/t5"))
 
 # COMMAND ----------
 
@@ -269,3 +299,23 @@
 # MAGIC result00.show(10)
 # MAGIC
 # MAGIC
+
+# COMMAND ----------
+
+# MAGIC %md 
+# MAGIC ###### creating delta table, displaying log info
+
+# COMMAND ----------
+
+# MAGIC %scala
+# MAGIC result00.write.saveAsTable("t6")
+
+# COMMAND ----------
+
+# MAGIC %scala
+# MAGIC display(dbutils.fs.ls("dbfs:/user/hive/warehouse/t6"))
+
+# COMMAND ----------
+
+# MAGIC %scala
+# MAGIC display(dbutils.fs.ls("dbfs:/user/hive/warehouse/t6/_delta_log"))
