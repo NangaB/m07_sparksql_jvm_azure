@@ -39,21 +39,7 @@
 # COMMAND ----------
 
 # MAGIC %scala
-# MAGIC
-# MAGIC import org.apache.spark.sql.SparkSession
-# MAGIC
-# MAGIC val sc = SparkSession.builder()
-# MAGIC     .appName("test-app")
-# MAGIC     .master("local")
-# MAGIC     .getOrCreate()
-# MAGIC
-# MAGIC
-# MAGIC
-
-# COMMAND ----------
-
-# MAGIC %scala
-# MAGIC   val hotelsWeather = sc.read
+# MAGIC   val hotelsWeather = spark.read
 # MAGIC     .format(file_type_1)
 # MAGIC     .option("header", "True")
 # MAGIC         .load(file_location_1)
@@ -65,7 +51,7 @@
 # COMMAND ----------
 
 # MAGIC %scala
-# MAGIC   val expedia = sc.read
+# MAGIC   val expedia = spark.read
 # MAGIC   .format("avro")
 # MAGIC   .option("header", "true")
 # MAGIC   .load(file_location_2)
@@ -82,10 +68,20 @@
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC ####### "managed tabel"
+
+# COMMAND ----------
+
 # MAGIC %scala
 # MAGIC val hotWeaTable = "t1"
 # MAGIC hotelsWeather.write.format("delta").saveAsTable("t1")
 # MAGIC
+
+# COMMAND ----------
+
+# MAGIC %scala
+# MAGIC display(dbutils.fs.ls("dbfs:/user/hive/warehouse/Files/t11_unmanage"))
 
 # COMMAND ----------
 
@@ -154,7 +150,7 @@
 # MAGIC WHERE
 # MAGIC rank<=10;
 # MAGIC """
-# MAGIC val result2 = sc.sql(query_2)
+# MAGIC val result2 = spark.sql(query_2)
 # MAGIC result2.show(50)
 
 # COMMAND ----------
@@ -182,13 +178,29 @@
 # MAGIC val q3 = """
 # MAGIC SELECT * FROM t1 LEFT JOIN t3 ON t1.id = t3.hotel_id
 # MAGIC """
-# MAGIC val result3 = sc.sql(q3)
+# MAGIC val result3 = spark.sql(q3)
 # MAGIC result3.show(50)
 
 # COMMAND ----------
 
 # MAGIC %scala
 # MAGIC result3.write.format("delta").saveAsTable("t4")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ###### writing data in external table "result1"
+
+# COMMAND ----------
+
+# MAGIC %scala
+# MAGIC val external_location = "wasbs://dataoutput@hotelsweather.blob.core.windows.net/result1"
+# MAGIC result3.write.format("delta").option("path", external_location).saveAsTable("results1")
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC DESCRIBE DETAIL results1;
 
 # COMMAND ----------
 
@@ -236,9 +248,14 @@
 # MAGIC     total_visits DESC
 # MAGIC LIMIT 10;
 # MAGIC """
-# MAGIC val result8 = sc.sql(q4)
+# MAGIC val result8 = spark.sql(q4)
 # MAGIC result8.show(20)
 # MAGIC
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ###### results saved in managed tabel as "t5"
 
 # COMMAND ----------
 
@@ -247,8 +264,14 @@
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC ###### checking 
+# MAGIC %md 
+# MAGIC ###### result saved in external table as "result2"
+
+# COMMAND ----------
+
+# MAGIC %scala
+# MAGIC val external_location_2 = "wasbs://dataoutput@hotelsweather.blob.core.windows.net/result2"
+# MAGIC result8.write.format("delta").option("path", external_location_2).saveAsTable("results12")
 
 # COMMAND ----------
 
@@ -295,7 +318,7 @@
 # MAGIC )
 # MAGIC SELECT *, ROUND((tt2.temp_day_out - tt2.temp_day_in),2) AS temp_diff_out_in, (tt2.temp_day_in + tt2.temp_day_out)/2 AS temp_avg FROM tt2;
 # MAGIC """
-# MAGIC val result00 = sc.sql(p)
+# MAGIC val result00 = spark.sql(p)
 # MAGIC result00.show(10)
 # MAGIC
 # MAGIC
@@ -309,6 +332,12 @@
 
 # MAGIC %scala
 # MAGIC result00.write.saveAsTable("t6")
+
+# COMMAND ----------
+
+# MAGIC %scala
+# MAGIC val external_location_3 = "wasbs://dataoutput@hotelsweather.blob.core.windows.net/result3"
+# MAGIC result00.write.format("delta").option("path", external_location_3).saveAsTable("results3")
 
 # COMMAND ----------
 
