@@ -3,9 +3,9 @@
 # MAGIC
 # MAGIC ### Step 1: Set the data location and type
 # MAGIC
-# MAGIC There are two ways to access Azure Blob storage: account keys and shared access signatures (SAS).
+# MAGIC Accesing  Azure Blob storageby  account keys
 # MAGIC
-# MAGIC To get started, we need to set the location and type of the file.
+# MAGIC To get started - settig the location and type of the file.
 
 # COMMAND ----------
 
@@ -33,7 +33,7 @@
 # MAGIC
 # MAGIC ### Step 2: Read the data
 # MAGIC
-# MAGIC Now that we have specified our file metadata, we can create a DataFrame. 
+# MAGIC Creation of a DataFrame. 
 # MAGIC
 
 # COMMAND ----------
@@ -43,10 +43,15 @@
 # MAGIC     .format(file_type_1)
 # MAGIC     .option("header", "True")
 # MAGIC         .load(file_location_1)
-# MAGIC   
+# MAGIC  
 # MAGIC   hotelsWeather.show()
 # MAGIC   hotelsWeather.printSchema()
 # MAGIC
+
+# COMMAND ----------
+
+file_type_11 = "parquet"
+file_location_11 = "wasbs://hotelsweather@hotelsweather.blob.core.windows.net/m07sparksql/hotel-weather"
 
 # COMMAND ----------
 
@@ -69,7 +74,7 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ####### "managed tabel"
+# MAGIC ####### Creating "managed tabel" for hotelsWeather
 
 # COMMAND ----------
 
@@ -80,14 +85,8 @@
 
 # COMMAND ----------
 
-# MAGIC %scala
-# MAGIC display(dbutils.fs.ls("dbfs:/user/hive/warehouse/Files/t11_unmanage"))
-
-# COMMAND ----------
-
-# MAGIC %scala
-# MAGIC val visitors = "t3"
-# MAGIC expedia.withColumnRenamed("id", "expedia_id").write.format("delta").saveAsTable("t3")
+# MAGIC %md
+# MAGIC ####### displaying information about created table
 
 # COMMAND ----------
 
@@ -98,6 +97,28 @@
 
 # MAGIC %sql
 # MAGIC DESCRIBE EXTENDED t1
+
+# COMMAND ----------
+
+# MAGIC %scala
+# MAGIC display(dbutils.fs.ls("dbfs:/user/hive/warehouse/t1"))
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ###### Creating "managed tabel" for expedia
+
+# COMMAND ----------
+
+# MAGIC %scala
+# MAGIC val visitors = "t3"
+# MAGIC expedia.withColumnRenamed("id", "expedia_id").write.format("delta").saveAsTable("t3")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ###### displaying information about created table - t3
+# MAGIC
 
 # COMMAND ----------
 
@@ -156,21 +177,23 @@
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC ###### execution plan for result2 dataframe. Execution plan determines the processing flow from the front end (Query) to the back end (Executors).
+
+# COMMAND ----------
+
+# MAGIC %scala
+# MAGIC result2.explain(extended=true)
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC
 # MAGIC ##### Step B: Second query: Top 10 busy (e.g., with the biggest visits count) hotels for each month. If visit dates refer to several months, it should be counted for all affected months
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ####### belowed - to be discused
-
-# COMMAND ----------
-
-# MAGIC %scala
-# MAGIC val joined = hotelsWeather.join(expedia, hotelsWeather("id") === expedia("hotel_id"), "left")
-# MAGIC
-# MAGIC joined.show()
-# MAGIC joined.printSchema()
+# MAGIC ####### joining tables t1 and t3 (managed) - that are table that are saved in dbfs (databricksfilesystem)
 
 # COMMAND ----------
 
@@ -183,13 +206,18 @@
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC ####### Saving results in a delta tabel named "t4" (managed)
+
+# COMMAND ----------
+
 # MAGIC %scala
 # MAGIC result3.write.format("delta").saveAsTable("t4")
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###### writing data in external table "result1"
+# MAGIC ####### Saving results in a delta tabel named "results1" (unmanaged - external table - storage account)
 
 # COMMAND ----------
 
@@ -199,8 +227,18 @@
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC ####### displaying info about "result1" tabel - from external location
+
+# COMMAND ----------
+
 # MAGIC %sql
 # MAGIC DESCRIBE DETAIL results1;
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ####### displaying info about "t4" tabel - (have a look at different locations)
 
 # COMMAND ----------
 
@@ -254,6 +292,11 @@
 
 # COMMAND ----------
 
+# MAGIC %scala
+# MAGIC result8.explain(extended=true)
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC ###### results saved in managed tabel as "t5"
 
@@ -265,13 +308,18 @@
 # COMMAND ----------
 
 # MAGIC %md 
-# MAGIC ###### result saved in external table as "result2"
+# MAGIC ###### result saved in external table as "result12"
 
 # COMMAND ----------
 
 # MAGIC %scala
 # MAGIC val external_location_2 = "wasbs://dataoutput@hotelsweather.blob.core.windows.net/result2"
 # MAGIC result8.write.format("delta").option("path", external_location_2).saveAsTable("results12")
+
+# COMMAND ----------
+
+# MAGIC %md 
+# MAGIC ###### desplying information about result table - "t5"
 
 # COMMAND ----------
 
@@ -325,13 +373,33 @@
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC ######## spark exectuion plan for result00 query
+
+# COMMAND ----------
+
+# MAGIC %scala
+# MAGIC result00.explain(extended=true)
+
+# COMMAND ----------
+
 # MAGIC %md 
-# MAGIC ###### creating delta table, displaying log info
+# MAGIC ###### creating delta table - t6 as a managed table, displaying log info
 
 # COMMAND ----------
 
 # MAGIC %scala
 # MAGIC result00.write.saveAsTable("t6")
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC DESCRIBE HISTORY t6
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ####### creating delta table - result3 as a external (unmanaged) table in a give location
 
 # COMMAND ----------
 
